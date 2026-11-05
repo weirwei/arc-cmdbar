@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="color-scheme" content="light dark">
+  <title>Arc Cmdbar</title>
+  <link rel="stylesheet" href="popup.css">
+  <script type="module" src="popup.js"></script>
+</head>
+<body>
+  <div class="bar">
+    <svg class="glass" viewBox="0 0 20 20" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5"/><path d="m13 13 4 4"/></svg>
+    <input id="q" type="text" autocomplete="off" spellcheck="false" autofocus
+      role="combobox" aria-expanded="true" aria-controls="list" aria-autocomplete="list"
+      aria-label="搜索标签页、书签、历史记录和命令" placeholder="搜索或输入网址…">
+  </div>
+  <ul id="list" role="listbox" aria-label="结果"></ul>
+  <div id="status" class="sr-only" role="status" aria-live="polite"></div>
+  <footer aria-hidden="true">
+    <span><kbd>↑</kbd><kbd>↓</kbd> 选择</span>
+    <span><kbd>↵</kbd> 打开</span>
+    <span><kbd>⇧</kbd><kbd>↵</kbd> 在当前标签打开</span>
+    <span><kbd id="mod">⌘</kbd><kbd>⇧</kbd><kbd>⌫</kbd> 关闭选中的标签</span>
+  </footer>
+</body>
+</html>

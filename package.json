@@ -1,0 +1,13 @@
+{
+  "name": "arc-cmdbar",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Arc-style command bar for Chrome: tabs, recently closed, bookmarks, history and actions in one search box",
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/",
+    "e2e": "node e2e/run.mjs",
+    "zip": "rm -f arc-cmdbar.zip && zip -r arc-cmdbar.zip manifest.json src -x '*.DS_Store'"
+  },
+  "license": "MIT"
+}

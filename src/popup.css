@@ -1,0 +1,55 @@
+:root {
+  --bg: #ffffff;
+  --fg: #1d1d1f;
+  --muted: #6e6e73;
+  --line: #e5e5ea;
+  --sel: #eef0ff;
+  --sel-fg: #1d1d1f;
+  --accent: #5b5bd6;
+  --badge: #f2f2f7;
+  --mark: #5b5bd6;
+  color-scheme: light dark;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1c1c1e;
+    --fg: #f2f2f7;
+    --muted: #98989f;
+    --line: #2f2f33;
+    --sel: #2e2e48;
+    --sel-fg: #ffffff;
+    --accent: #8e8cf5;
+    --badge: #2c2c2e;
+    --mark: #a8a6ff;
+  }
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  width: 640px;
+  background: var(--bg);
+  color: var(--fg);
+  font: 14px/1.35 -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+.bar { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-bottom: 1px solid var(--line); }
+.glass { width: 18px; height: 18px; fill: none; stroke: var(--muted); stroke-width: 1.8; stroke-linecap: round; flex: none; }
+#q { flex: 1; border: 0; outline: 0; background: transparent; color: var(--fg); font-size: 17px; padding: 2px 0; }
+#q::placeholder { color: var(--muted); }
+#list { list-style: none; margin: 0; padding: 6px; max-height: 452px; overflow-y: auto; }
+#list:empty { display: none; }
+.row { display: flex; align-items: center; gap: 10px; padding: 7px 10px; border-radius: 8px; cursor: default; min-height: 40px; }
+.row[aria-selected="true"] { background: var(--sel); color: var(--sel-fg); }
+.row .icon { width: 16px; height: 16px; flex: none; display: grid; place-items: center; color: var(--muted); font-size: 13px; }
+.row .icon img { width: 16px; height: 16px; }
+.row .text { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.row .title, .row .url { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.row .url { color: var(--muted); font-size: 12px; }
+.row mark { background: none; color: var(--mark); font-weight: 600; }
+.badge { flex: none; font-size: 11px; color: var(--muted); background: var(--badge); border-radius: 5px; padding: 1px 6px; }
+.row[aria-selected="true"] .badge { color: var(--accent); }
+footer { display: flex; gap: 14px; padding: 7px 14px; border-top: 1px solid var(--line); color: var(--muted); font-size: 11.5px; }
+kbd { font: inherit; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: 0 4px; margin-right: 2px; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+@media (forced-colors: active) {
+  .row[aria-selected="true"] { outline: 2px solid Highlight; }
+}
