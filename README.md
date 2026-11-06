@@ -52,8 +52,11 @@ Chrome 不允许插件占用 ⌘T / Ctrl+T，建议的快捷键必须带 Ctrl �
 ```bash
 npm test                                                          # 单元测试：匹配、排序、去重、网址识别、命令
 CHROME_BIN="/path/to/Google Chrome for Testing" npm run e2e       # 真浏览器端到端（e2e/run.mjs 只装本插件；e2e/pinline.mjs 同时装 ../pinline）
-npm run zip                                                       # 打包
+npm run zip                                                       # 打包上架用的 zip（自动去掉 manifest 的 key）
+CHROME_HEADLESS="/path/to/chrome-headless-shell" npm run icons  # 从 icons/icon.svg 重新生成 PNG 图标
 ```
+
+商店要填的说明和权限用途见 `store/listing.md`。
 
 正式版 Chrome 不支持 `--load-extension`，e2e 需要 [Chrome for Testing](https://googlechromelabs.github.io/chrome-for-testing/)。e2e 用临时用户目录和本地 HTTP 页面，不联网（「搜索」那一项会打开 Google 搜索页但只检查网址），结束后删除临时目录。
 
