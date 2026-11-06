@@ -216,7 +216,7 @@ try {
   };
   const light = await bg('light');
   const dark = await bg('dark');
-  check(light.startsWith('rgb(255, 255, 255)') && dark.startsWith('rgb(28, 28, 30)'), `light / dark themes (${light} | ${dark})`);
+  check(light.startsWith('rgb(246, 247, 249)') && dark.startsWith('rgb(31, 31, 34)'), `light / dark themes (${light} | ${dark})`);
   await p.send('Emulation.setEmulatedMedia', { features: [] });
 
   // Enter on an open tab switches to it.

@@ -25,6 +25,8 @@ const state = {
 window.__cmdbar = state;
 
 const BADGE = { tab: '标签页', bookmark: '书签', history: '历史', closed: '最近关闭', action: '命令' };
+const GO = { tab: '切换到标签页', bookmark: '打开', history: '打开', closed: '恢复', action: '执行' };
+const goLabel = (item) => (item.kind === 'fallback' ? (item.mode === 'url' ? '打开' : '搜索') : GO[item.kind]);
 
 const ctx = () => ({
   tab: state.target, home: state.home, hasClosed: state.closed.length > 0,
@@ -100,13 +102,23 @@ function rowFor(r, i) {
     text.append(url);
   }
 
-  const badge = document.createElement('span');
-  badge.className = 'badge';
-  badge.textContent = badgeText;
-  badge.setAttribute('aria-hidden', 'true');
+  // Right side, Arc style: the kind label normally, the action label ("切换到标签页") when selected, then an arrow box.
+  const hint = document.createElement('span');
+  hint.className = 'hint';
+  hint.setAttribute('aria-hidden', 'true');
+  const kind = document.createElement('span');
+  kind.className = 'badge';
+  kind.textContent = badgeText;
+  const go = document.createElement('span');
+  go.className = 'go';
+  go.textContent = goLabel(item);
+  const arrow = document.createElement('span');
+  arrow.className = 'arrow';
+  arrow.textContent = '→';
+  hint.append(kind, go, arrow);
 
   li.setAttribute('aria-label', `${badgeText}：${title.textContent}${urlText ? `，${urlText}` : ''}`);
-  li.append(icon, text, badge);
+  li.append(icon, text, hint);
   return li;
 }
 
@@ -216,7 +228,13 @@ $q.addEventListener('input', () => {
   if (q.length >= 2) historyTimer = setTimeout(() => searchHistory(q), 80);
 });
 
+// Chrome fires mousemove without real movement when rows re-render under a resting cursor;
+// only a real pointer move should take the selection away from the keyboard.
+let lastPointer = '';
 $list.addEventListener('mousemove', (e) => {
+  const at = `${e.screenX},${e.screenY}`;
+  if (at === lastPointer) return;
+  lastPointer = at;
   const li = e.target.closest('.row');
   if (!li) return;
   const i = [...$list.children].indexOf(li);
