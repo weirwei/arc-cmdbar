@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "test": "node --test tests/",
-    "e2e": "node e2e/run.mjs",
+    "e2e": "node e2e/run.mjs && node e2e/pinline.mjs",
     "zip": "rm -f arc-cmdbar.zip && zip -r arc-cmdbar.zip manifest.json src -x '*.DS_Store'"
   },
   "license": "MIT"

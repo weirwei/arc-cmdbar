@@ -1,6 +1,7 @@
 // Command list. `title` / `available` only look at the context, so they are unit-testable;
 // `run` talks to the chrome.* API passed in.
 import { urlKey } from './rank.js';
+import { REPLACED_BY_PINLINE } from './pinline.js';
 
 const isWeb = (url) => /^(https?|file|ftp):/i.test(url || '');
 
@@ -9,6 +10,7 @@ const isWeb = (url) => /^(https?|file|ftp):/i.test(url || '');
  *   tab:       the tab the command acts on (the active tab when the popup opened)
  *   home:      URL the tab had when it was pinned (for "reset"), if known
  *   hasClosed: whether chrome.sessions has something to reopen
+ *   pinline:   Pinline is installed (it replaces our pin / reset actions)
  */
 export const ACTIONS = [
   {
@@ -92,7 +94,7 @@ export const ACTIONS = [
 
 /** Action items for the search pool. */
 export function actionItems(ctx) {
-  return ACTIONS.filter((a) => a.available(ctx)).map((a) => ({
+  return ACTIONS.filter((a) => a.available(ctx) && !(ctx.pinline && REPLACED_BY_PINLINE.has(a.id))).map((a) => ({
     kind: 'action', id: `action:${a.id}`, actionId: a.id, title: a.title(ctx), keywords: a.keywords,
   }));
 }

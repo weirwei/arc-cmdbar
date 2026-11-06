@@ -1,10 +1,10 @@
 // Pure search / ranking logic. No chrome.* here, so it runs under `node --test`.
 
 /** Search result kinds, in the order used to break ties and to dedupe (first wins). */
-export const KIND_ORDER = ['action', 'tab', 'bookmark', 'closed', 'history'];
+export const KIND_ORDER = ['action', 'tab', 'archive', 'bookmark', 'closed', 'history'];
 
 /** Base weight per kind: open tabs beat bookmarks beat history, like Arc. */
-export const KIND_WEIGHT = { action: 1.0, tab: 1.2, bookmark: 1.0, closed: 0.95, history: 0.85, fallback: 0 };
+export const KIND_WEIGHT = { action: 1.0, tab: 1.2, bookmark: 1.0, closed: 0.95, archive: 0.9, history: 0.85, fallback: 0 };
 
 const MAX_TEXT = 300;
 const BOUNDARY = /[\s\-_./:?#&=()[\]|,·—–]/;
@@ -151,7 +151,7 @@ export function scoreItem(item, tokens, now = Date.now()) {
 
 /** 0..4 bonus for recently used / often visited items. */
 export function recencyBonus(item, now = Date.now()) {
-  const t = item.lastAccessed ?? item.lastVisitTime ?? item.closedAt ?? item.dateAdded;
+  const t = item.lastAccessed ?? item.lastVisitTime ?? item.closedAt ?? item.archivedAt ?? item.dateAdded;
   let bonus = 0;
   if (t) {
     const hours = Math.max(0, (now - t) / 3.6e6);
@@ -161,7 +161,8 @@ export function recencyBonus(item, now = Date.now()) {
   return bonus;
 }
 
-/** Remove later duplicates of the same URL, keeping the higher-priority kind (tab > bookmark > closed > history). */
+/** Remove later duplicates of the same URL, keeping the higher-priority kind (tab > archive > bookmark > closed > history).
+ * A Pinline archive entry beats the bookmark / closed copy: opening it also takes it out of the archive.. */
 export function dedupe(items) {
   const rank = (k) => { const i = KIND_ORDER.indexOf(k); return i === -1 ? 99 : i; };
   const sorted = [...items].sort((a, b) => rank(a.kind) - rank(b.kind));

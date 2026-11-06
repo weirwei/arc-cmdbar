@@ -2,6 +2,7 @@
   "manifest_version": 3,
   "name": "Arc Cmdbar",
   "version": "0.1.0",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAjleWYg+SQSOa4kDlBzBfK14VAKdrAudZ2nQdZgclyXFUMY/Zi3p24hu4toFcK9i+BfOWNSkUUMcdZW4+AaV0M+M7pTqXXVHgKWzoJLhg9iWJP9A8r1PuuTiaoEARHJHsh8RSGqjRIiHFq5s9xCpiLYDvxUIyrDRTOicsfH2kDDLbcAOguZIsC+ZdV2ykwylMx0IzLaedh/9fa1eGqzq7mwHILTqVmu2QE4wDArer67eNtaTMuAhRyeXHiEo8pAQgbm5oaUoln/9N0uKq4Kz/SlknAoiG7F9OLgQp6kekkHd9uIlEwENX/pJ0Z8uMYGQHMXG8aP1R7248KOjBa/jc9QIDAQAB",
   "description": "Arc 风格的命令栏：一个搜索框搜标签页、最近关闭、书签、历史记录和常用命令。",
   "minimum_chrome_version": "116",
   "permissions": [

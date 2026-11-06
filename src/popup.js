@@ -1,6 +1,7 @@
 import { rankItems, displayUrl } from './rank.js';
 import { actionItems, findAction } from './actions.js';
 import { tabItem, bookmarkItems, historyItem, closedItems, openDisposition } from './sources.js';
+import { PINLINE_ID, pinlineItems, applyPinlineTabs, realTab } from './pinline.js';
 
 const t0 = performance.now();
 const params = new URLSearchParams(location.search);
@@ -19,22 +20,23 @@ document.getElementById('mod').textContent = isMac ? '⌘' : 'Ctrl';
 const state = {
   target: null, home: undefined,
   tabs: [], bookmarks: [], history: new Map(), closed: [],
+  rawTabs: [], pinline: null, // Pinline's cmdbar:list answer, or null when it is not installed / did not answer
   results: [], sel: 0, moved: false, selectedId: null,
   firstRenderMs: null, done: null, errors: [],
 };
 window.__cmdbar = state;
 
-const BADGE = { tab: '标签页', bookmark: '书签', history: '历史', closed: '最近关闭', action: '命令' };
-const GO = { tab: '切换到标签页', bookmark: '打开', history: '打开', closed: '恢复', action: '执行' };
+const BADGE = { tab: '标签页', bookmark: '书签', history: '历史', closed: '最近关闭', action: '命令', archive: '归档' };
+const GO = { tab: '切换到标签页', bookmark: '打开', history: '打开', closed: '恢复', action: '执行', archive: '恢复' };
 const goLabel = (item) => (item.kind === 'fallback' ? (item.mode === 'url' ? '打开' : '搜索') : GO[item.kind]);
 
 const ctx = () => ({
-  tab: state.target, home: state.home, hasClosed: state.closed.length > 0,
+  tab: realTab(state.target, state.pinline?.tabs), home: state.home, hasClosed: state.closed.length > 0, pinline: !!state.pinline,
   clipboard: (text) => navigator.clipboard.writeText(text),
 });
 
 function pool() {
-  return [...actionItems(ctx()), ...state.tabs, ...state.closed, ...state.bookmarks, ...state.history.values()];
+  return [...actionItems(ctx()), ...pinlineItems(state.pinline), ...state.tabs, ...state.closed, ...state.bookmarks, ...state.history.values()];
 }
 
 // ---------- rendering ----------
@@ -91,6 +93,8 @@ function rowFor(r, i) {
   } else {
     title.append(highlight(item.title || '', r.titlePositions));
     if (item.kind === 'tab' && item.pinned) badgeText = '固定标签页';
+    if (item.kind === 'tab' && item.role) badgeText = item.role === 'fav' ? 'Fav' : 'Pin';
+    if (item.badge) badgeText = item.badge;
     if (item.url) urlText = displayUrl(item.url);
   }
   text.append(title);
@@ -181,7 +185,11 @@ async function activate(i, { current = false } = {}) {
         }
         break;
       case 'action':
-        await findAction(item.actionId).run(ctx(), chrome);
+        if (item.pinline) await runPinline(item.pinline);
+        else await findAction(item.actionId).run(ctx(), chrome);
+        break;
+      case 'archive':
+        await runPinline(item.pinline);
         break;
     }
     finish(item);
@@ -190,6 +198,33 @@ async function activate(i, { current = false } = {}) {
     $status.textContent = `操作失败：${e?.message || e}`;
     console.error('arc-cmdbar', e);
   }
+}
+
+// ---------- Pinline ----------
+
+const PINLINE_LIST_WAIT_MS = 400; // first frame waits at most this long; a later answer still re-renders
+const PINLINE_RUN_WAIT_MS = 5000;
+
+function askPinline(msg, ms) {
+  const send = chrome.runtime.sendMessage(PINLINE_ID, msg).catch(() => null); // not installed → rejects
+  return ms ? Promise.race([send, new Promise((r) => setTimeout(() => r(undefined), ms))]) : send;
+}
+
+async function loadPinline(target) {
+  const res = await askPinline({ type: 'cmdbar:list', tabId: target?.id, windowId: target?.windowId });
+  state.pinline = res && !res.error ? res : null;
+  state.pinlineMs = Math.round(performance.now() - t0);
+  applyTabs();
+}
+
+function applyTabs() {
+  state.tabs = applyPinlineTabs(state.rawTabs, state.pinline?.tabs, state.target?.windowId);
+}
+
+async function runPinline(id) {
+  const res = await askPinline({ type: 'cmdbar:run', id, tabId: state.target?.id, windowId: state.target?.windowId }, PINLINE_RUN_WAIT_MS);
+  if (res === null) throw new Error('Pinline 没有响应');
+  if (res?.error) throw new Error(res.error);
 }
 
 function finish(item) {
@@ -201,6 +236,7 @@ async function closeSelectedTab() {
   const r = state.results[state.sel];
   if (r?.item.kind !== 'tab') return;
   await chrome.tabs.remove(r.item.tabId);
+  state.rawTabs = state.rawTabs.filter((t) => t.tabId !== r.item.tabId);
   state.tabs = state.tabs.filter((t) => t.tabId !== r.item.tabId);
   const keep = state.sel;
   state.moved = false;
@@ -277,8 +313,14 @@ async function load() {
   ]);
   state.target = target;
   state.home = target ? homes[target.id] : undefined;
-  state.tabs = tabs.map((t) => tabItem(t, target?.id, SELF)).filter(Boolean);
+  state.rawTabs = tabs.map((t) => tabItem(t, target?.id, SELF)).filter(Boolean);
+  applyTabs();
+  // Pinline (if installed) relabels its tabs and adds commands. Wait a little so its divider never flashes.
+  const pinline = loadPinline(target);
+  state.pinlineReady = pinline; // e2e: wait for it before reading results
+  const inTime = await Promise.race([pinline.then(() => true), new Promise((r) => setTimeout(() => r(false), PINLINE_LIST_WAIT_MS))]);
   render();
+  if (!inTime) pinline.then(render);
   // Phase 2: bookmarks, recently closed, recent history.
   const [tree, sessions, history] = await Promise.all([
     chrome.bookmarks.getTree(),
